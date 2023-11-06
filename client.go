@@ -7,7 +7,10 @@ import (
 )
 
 func ClientAuthentication(username, password string) error {
-	clientNonce := generateNonce()
+	clientNonce, err := generateNonce()
+	if err != nil {
+		return err
+	}
 
 	// send the authentication request to the server to begin the SCRAM process
 	salt, iterationCount, combinedNonce, err := ServerInitiateAuthentication(username, clientNonce)
@@ -26,7 +29,11 @@ func ClientAuthentication(username, password string) error {
 	clientSignature := hmacSha256(storedKey[:], []byte(authMessage))
 
 	// XORing the ClientKey with the ClientSignature will produce the ClientProof
-	clientProof := base64.StdEncoding.EncodeToString(xor(clientKey, clientSignature))
+	clientProofB, err := xor(clientKey, clientSignature)
+	if err != nil {
+		return err
+	}
+	clientProof := base64.StdEncoding.EncodeToString(clientProofB)
 
 	// send the client proof to the server to get he server's signature
 	expectedServerSig, err := ServerCompleteAuthentication(username, clientProof, combinedNonce)

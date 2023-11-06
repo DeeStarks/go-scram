@@ -5,17 +5,19 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"golang.org/x/crypto/pbkdf2"
+	"errors"
 	"io"
+
+	"golang.org/x/crypto/pbkdf2"
 )
 
 // generateNonce generates a random 16-byte nonce
-func generateNonce() string {
+func generateNonce() (string, error) {
 	nonce := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err)
+		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(nonce)
+	return base64.StdEncoding.EncodeToString(nonce), nil
 }
 
 // hmacSha256 function calculates the HMAC of a message
@@ -26,16 +28,16 @@ func hmacSha256(key, message []byte) []byte {
 }
 
 // xor function performs a bitwise XOR of two byte slices
-func xor(a, b []byte) []byte {
+func xor(a, b []byte) ([]byte, error) {
 	if len(a) != len(b) {
-		panic("XOR input lengths are not equal")
+		return nil, errors.New("unequal length")
 	}
 
 	result := make([]byte, len(a))
 	for i := range a {
 		result[i] = a[i] ^ b[i]
 	}
-	return result
+	return result, nil
 }
 
 // hi function computes SaltedPassword using PBKDF2

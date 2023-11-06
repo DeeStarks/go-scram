@@ -24,7 +24,10 @@ var users = make(map[string]User)
 // by specifying the user's username and plaintext password and
 // storing the user's salt, iteration count, stored key, and server key
 func ServerCreateAccount(username, password string) {
-	salt := generateNonce()
+	salt, err := generateNonce()
+	if err != nil {
+		panic(err)
+	}
 
 	// calculate SaltedPassword using PBKDF2
 	saltedPassword := hi(password, salt, IterationCount)
@@ -58,9 +61,12 @@ func ServerInitiateAuthentication(username, clientNonce string) (string, int, st
 		return "", 0, "", errors.New("user not found")
 	}
 
-	serverNonce := generateNonce()
-	combinedNonce := clientNonce + serverNonce
+	serverNonce, err := generateNonce()
+	if err != nil {
+		return "", 0, "", err
+	}
 
+	combinedNonce := clientNonce + serverNonce
 	return user.Salt, user.Iters, combinedNonce, nil
 }
 
@@ -78,7 +84,10 @@ func serverVerifyClientProof(username, combinedNonce string, clientProof []byte)
 	clientSignature := hmacSha256(user.StoredK, []byte(authMessage))
 
 	// exclusive-ORing to recover the ClientKey
-	clientKey := xor(clientProof, clientSignature)
+	clientKey, err := xor(clientProof, clientSignature)
+	if err != nil {
+		return false
+	}
 
 	// verifing the correctness of the client key
 	storedKey := sha256.Sum256(clientKey)
