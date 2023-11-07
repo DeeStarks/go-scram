@@ -5,24 +5,24 @@ import (
 )
 
 func TestClientServerScram(t *testing.T) {
-	type info struct {
+	type cred struct {
 		u string
 		p string
 	}
 
 	tc := []struct {
 		name       string
-		createInfo info
-		authInfo   info
+		createCred cred
+		authCred   cred
 		err        bool
 	}{
 		{
 			name: "correct user and password",
-			createInfo: info{
+			createCred: cred{
 				u: "user1",
 				p: "password1",
 			},
-			authInfo: info{
+			authCred: cred{
 				u: "user1",
 				p: "password1",
 			},
@@ -30,11 +30,11 @@ func TestClientServerScram(t *testing.T) {
 		},
 		{
 			name: "incorrect password",
-			createInfo: info{
+			createCred: cred{
 				u: "user2",
 				p: "password2",
 			},
-			authInfo: info{
+			authCred: cred{
 				u: "user2",
 				p: "password3",
 			},
@@ -42,8 +42,8 @@ func TestClientServerScram(t *testing.T) {
 		},
 		{
 			name:       "unknown user",
-			createInfo: info{},
-			authInfo: info{
+			createCred: cred{},
+			authCred: cred{
 				u: "user3",
 				p: "password3",
 			},
@@ -53,11 +53,11 @@ func TestClientServerScram(t *testing.T) {
 
 	for _, c := range tc {
 		t.Run(c.name, func(t *testing.T) {
-			if c.createInfo.u != "" {
-				ServerCreateAccount(c.createInfo.u, c.createInfo.p)
+			if c.createCred.u != "" {
+				ServerCreateAccount(c.createCred.u, c.createCred.p)
 			}
 
-			err := ClientAuthentication(c.authInfo.u, c.authInfo.p)
+			err := ClientAuthentication(c.authCred.u, c.authCred.p)
 			if c.err && err == nil {
 				t.Errorf("expected error, got nil")
 			} else if !c.err && err != nil {

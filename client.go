@@ -41,11 +41,11 @@ func ClientAuthentication(username, password string) error {
 		return err // returns an error if the server proof verification fails
 	}
 
-	// verify the server's proof
-	serverProof := hmacSha256(serverKey, []byte(authMessage))
+	// verify the server's signature
+	serverSignature := hmacSha256(serverKey, []byte(authMessage))
 
-	if expectedServerSig != base64.StdEncoding.EncodeToString(serverProof) {
-		return errors.New("server proof verification failed")
+	if expectedServerSig != base64.StdEncoding.EncodeToString(serverSignature) {
+		return errors.New("verification failed")
 	}
 
 	return nil
